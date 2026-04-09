@@ -1,0 +1,58 @@
+# --- System / OS ---
+.DS_Store
+Thumbs.db
+
+# --- Go / Services ---
+bin/
+services/**/cmd/main
+services/**/internal/handler/*.test
+pkg/resilience/*.test
+vendor/
+*.exe
+*.dll
+*.so
+
+# --- Python / AI / Notebooks ---
+__pycache__/
+*.py[cod]
+*.class
+.venv/
+venv/
+ENV/
+.ipynb_checkpoints/
+.python-version
+
+# --- Terraform & Infrastructure ---
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfvars
+*.tfvars.json
+.terraform.lock.hcl
+crash.log
+override.tf
+override.tf.json
+
+# --- Security / Secrets (CRITICAL) ---
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+*.pub
+secret.tfvars
+auth_token.txt
+
+# --- Cloud Credentials (GCP/AWS) ---
+# Prevents accidental upload of Service Account JSONs
+*.json
+!api/proto/*.json
+!api/openapi/*.json
+!schemas/**/*.json
+gcp-key.json
+aws_credentials
+
+# --- Deliverables & Artifacts ---
+data/output/reports/*.docx
+data/output/reports/*.pdf
+diagrams/as-code/*.png

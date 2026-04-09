@@ -1,0 +1,10 @@
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: "default"
+  namespace: "mia-nervous-system"
+spec:
+  # NIST SC-8: Protection of Information in Transit
+  # STIG requirement: Disallow all plaintext traffic
+  mtls:
+    mode: STRICT
