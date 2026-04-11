@@ -1,28 +1,64 @@
 package stigchecker
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 )
 
+// WizFinding represents the schema typically exported by Wiz or Tenable
 type WizFinding struct {
-	ID         string `json:"id"`
-	Resource   string `json:"resource"`
-	Issue      string `json:"issue"` // e.g., "IMDSv1_ENABLED"
-	Severity   string `json:"severity"`
+	ID          string `json:"id"`
+	ResourceID  string `json:"resource_id"`
+	FindingType string `json:"finding_type"`
+	Severity    string `json:"severity"`
+	NISTControl string `json:"nist_control"`
 }
 
-// RemediateWizFinding simulates the Agent's decision logic
-func RemediateWizFinding(finding WizFinding) string {
-	log.Printf("[WIZ-SCAN] Analyzing Finding: %s on %s", finding.ID, finding.Resource)
+// RemediationPlan defines the automated action to take
+type RemediationPlan struct {
+	Action      string `json:"action"`
+	Impact      string `json:"impact"`
+	Automated   bool   `json:"automated"`
+}
 
-	switch finding.Issue {
+// ProcessFinding analyzes the vulnerability and maps it to a STIG remediation
+func ProcessFinding(findingData []byte) (RemediationPlan, error) {
+	var finding WizFinding
+	if err := json.Unmarshal(findingData, &finding); err != nil {
+		return RemediationPlan{}, err
+	}
+
+	log.Printf("[SECURITY-ALARM] Finding %s detected on %s (Severity: %s)",
+		finding.ID, finding.ResourceID, finding.Severity)
+
+	// Remediation Logic specifically for the Vantor JD Requirements
+	switch finding.FindingType {
 	case "IMDSv1_ENABLED":
-		// This hits the specific requirement in the Vantor JD
-		return "REMEDIATION: Triggering Terraform update to set http_tokens = required (IMDSv2)."
-	case "S3_PUBLIC_ACCESS":
-		return "REMEDIATION: Applying aws_s3_account_public_access_block via ABAC Policy."
+		return RemediationPlan{
+			Action:    "ENFORCE_IMDSV2: Updating Launch Template http_tokens to 'required'.",
+			Impact:    "Low - Restart of EKS worker nodes may be required.",
+			Automated: true,
+		}, nil
+
+	case "S3_PUBLIC_READ_ENABLED":
+		return RemediationPlan{
+			Action:    "BLOCK_PUBLIC_ACCESS: Applying S3 Account-level Public Access Block.",
+			Impact:    "None - Blocks unauthorized external data egress.",
+			Automated: true,
+		}, nil
+
+	case "UNENCRYPTED_EBS_VOLUME":
+		return RemediationPlan{
+			Action:    "ENFORCE_AES256: Re-provisioning volume with KMS CMK encryption.",
+			Impact:    "High - Requires data migration/snapshotting.",
+			Automated: false, // Manual intervention required for data integrity
+		}, nil
+
 	default:
-		return "LOG: Manual review required for NIST 800-53 compliance."
+		return RemediationPlan{
+			Action:    "MANUAL_REVIEW: Escalating to Cloud Security Architect.",
+			Automated: false,
+		}, nil
 	}
 }
