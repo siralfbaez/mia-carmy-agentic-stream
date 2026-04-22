@@ -3,24 +3,37 @@ package security
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"fmt"
 	"os"
 )
 
-// LoadmTLSConfig creates a TLS config that enforces mutual authentication
+// LoadmTLSConfig handles the heavy lifting of Zero Trust certificate validation
 func LoadmTLSConfig(caCertPath, serverCertPath, serverKeyPath string) (*tls.Config, error) {
-	// 1. Load the trusted CA certificate (The trust anchor)
-	caCert, _ := os.ReadFile(caCertPath)
+	// 1. Load the CA certificate (The trust anchor for cArmy/ECMA)
+	caCert, err := os.ReadFile(caCertPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read CA cert: %w", err)
+	}
+
 	caCertPool := x509.NewCertPool()
-	caCertPool.AppendCertsFromPEM(caCert)
+	if ok := caCertPool.AppendCertsFromPEM(caCert); !ok {
+		return nil, fmt.Errorf("failed to append CA cert to pool")
+	}
 
-	// 2. Load the service's own cert/key pair
-	cert, _ := tls.LoadX509KeyPair(serverCertPath, serverKeyPath)
+	// 2. Load the Service's own Certificate and Private Key
+	cert, err := tls.LoadX509KeyPair(serverCertPath, serverKeyPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load server key pair: %w", err)
+	}
 
+	// 3. Construct the hardened TLS Configuration
 	return &tls.Config{
 		Certificates: []tls.Certificate{cert},
 		ClientCAs:    caCertPool,
-		// NIST 800-53 AC-3 & SC-8: Enforce Mutual Authentication
-		ClientAuth:   tls.RequireAndVerifyClientCert, 
-		MinVersion:   tls.VersionTLS13, // STIGs require TLS 1.2+, 1.3 preferred
+		// RequireAndVerifyClientCert is the "Mutual" in mTLS
+		ClientAuth: tls.RequireAndVerifyClientCert,
+		// STIG Requirement: Force TLS 1.3 to avoid legacy cipher vulnerabilities
+		MinVersion: tls.VersionTLS13,
+		CurvePreferences: []tls.CurveID{tls.CurveP521, tls.CurveP384},
 	}, nil
 }
