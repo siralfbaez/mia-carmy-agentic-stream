@@ -1,11 +1,34 @@
 # Mia cArmy Agentic Stream ⚡
 
-Root CA: Offline, highly protected (simulated).
-
-Intermediate CA: Used to sign service certificates.
-
+Root CA: Offline, highly protected (simulated).<br>
+Intermediate CA: Used to sign service certificates.<br>
 Service Certificates: Each pod in EKS gets a unique identity.
 
+### Hardened AWS GovCloud Architecture for High-Compliance Environments
+
+This repository demonstrates a **Senior Solution Architect** approach to building secure, cost-optimized, and automated infrastructure within the **Army Enterprise Cloud Management Agency (ECMA)** framework.
+
+## 🛡️ Core Pillars of the Architecture
+
+### 1. Infrastructure Hardening (NIST 800-53 & STIGs)
+* **Zero-Trust Networking:** Enforced **mTLS (Mutual TLS)** for all service-to-service communication using Go and Istio patterns, satisfying **SC-8**.
+* **Compute Security:** EKS worker nodes utilize **DISA STIG-hardened RHEL 8 images** with **IMDSv2** enforced to prevent SSRF attacks (**CM-6**).
+* **Boundary Protection:** Designed for **BCAP** (Boundary Cloud Access Point) compliance, utilizing **VPC Endpoints** and **PrivateLink** to eliminate the need for an Internet Gateway (IGW).
+
+### 2. Agentic Compliance (The "Nervous System")
+* **Automated Remediation:** Integrates an **Agentic RAG** pattern that parses **Wiz/Tenable** vulnerability scans and maps them to **NIST 800-53** controls for automated Terraform-based healing.
+* **Policy-as-Code:** Uses Terraform to enforce AES-256 **KMS Envelope Encryption** for all S3 and RDS data at rest (**SC-28**).
+
+### 3. Financial Governance (Cost Modeling)
+* **Lifecycle Management:** Automated S3 policies to transition **CUI (Controlled Unclassified Information)** to **Glacier Instant Retrieval**, reducing storage costs by ~60% while meeting 1-year retention mandates.
+* **Compute Efficiency:** Leveraging **Karpenter** for EKS and **Spot Instances** for stateless signal processing to maximize budget utilization.
+
+## 🚀 Quick Reference
+* **Compliance Baseline:** NIST 800-53 Rev 5 (Moderate/High)
+* **Cloud Ecosystem:** AWS GovCloud / cArmy / ECMA
+* **Primary Stack:** Go, Terraform, Docker, Kubernetes (EKS), Kafka
+
+---
 
 # MIA cArmy Tagging & ABAC Standard
 
@@ -67,6 +90,12 @@ graph TD
 ``` 
 
 ---
+
+
+# Author: Alf Baez
+### Hardened AWS GovCloud Architecture for High-Compliance Environments
+
+This repository demonstrates a **Senior Solution Architect** approach to building secure, cost-optimized, and automated infrastructure within the **Army Enterprise Cloud Management Agency (ECMA)** framework.
 
 
 
